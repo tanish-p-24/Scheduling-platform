@@ -1,6 +1,7 @@
 package com.tanish.scheduling_platform.service;
 
 import com.tanish.scheduling_platform.dto.RegisterRequest;
+import com.tanish.scheduling_platform.dto.UserResponse;
 import com.tanish.scheduling_platform.model.User;
 import com.tanish.scheduling_platform.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,8 +10,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 import java.util.List;
-
-
 
 @Service
 public class UserService {
@@ -21,7 +20,7 @@ public class UserService {
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
 
-    public User registerUser(RegisterRequest request) {
+    public UserResponse registerUser(RegisterRequest request) {
         User user = User.builder()
                 .fullName(request.getFullName())
                 .email(request.getEmail())
@@ -29,7 +28,14 @@ public class UserService {
                 .role(request.getRole())
                 .build();
 
-        return userRepository.save(user);
+        User saved = userRepository.save(user);
+
+        return new UserResponse(
+                saved.getId(),
+                saved.getFullName(),
+                saved.getEmail(),
+                saved.getRole()
+        );
     }
 
     public List<User> getAllUsers() {
@@ -38,5 +44,18 @@ public class UserService {
 
     public Optional<User> getUserByEmail(String email) {
         return userRepository.findByEmail(email);
+    }
+
+    // NEW
+    public UserResponse getCurrentUserResponse(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        return new UserResponse(
+                user.getId(),
+                user.getFullName(),
+                user.getEmail(),
+                user.getRole()
+        );
     }
 }
